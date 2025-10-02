@@ -8,7 +8,10 @@ open Nat
 def f (x : ℕ) :=
   x + 3
 
-#check f
+-- mapsto ↦
+-- to →
+
+#check fun (x : ℕ) => x + 3
 
 -- These are propositions, of type `Prop`.
 #check 2 + 2 = 4
@@ -19,6 +22,7 @@ def FermatLastTheorem :=
 #check FermatLastTheorem
 
 -- These are proofs of propositions.
+-- theorem:反复使用 example:只用一次
 theorem easy : 2 + 2 = 4 :=
   rfl
 
@@ -30,6 +34,7 @@ theorem hard : FermatLastTheorem :=
 #check hard
 
 -- Here are some proofs.
+-- := 非战术式证明 := by 战术式证明
 example : ∀ m n : Nat, Even n → Even (m * n) := fun m n ⟨k, (hk : n = k + k)⟩ ↦
   have hmn : m * n = m * k + m * k := by rw [hk, mul_add]
   show ∃ l, m * n = l + l from ⟨_, hmn⟩
@@ -52,4 +57,3 @@ example : ∀ m n : Nat, Even n → Even (m * n) := by
 
 example : ∀ m n : Nat, Even n → Even (m * n) := by
   intros; simp [*, parity_simps]
-

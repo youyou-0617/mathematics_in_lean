@@ -35,6 +35,7 @@ end
 
 namespace MyRing
 variable {R : Type*} [Ring R]
+-- 这边怎么用{}了
 
 theorem add_zero (a : R) : a + 0 = a := by rw [add_comm, zero_add]
 
@@ -45,6 +46,12 @@ theorem add_neg_cancel (a : R) : a + -a = 0 := by rw [add_comm, neg_add_cancel]
 
 end MyRing
 
+-- If you are paying careful attention,
+-- you may have noticed that we changed the
+-- round brackets in (R : Type*) for curly brackets in {R : Type*}.
+-- This declares R to be an implicit argument.
+-- 好的等一下解释
+
 namespace MyRing
 variable {R : Type*} [Ring R]
 
@@ -53,13 +60,17 @@ theorem neg_add_cancel_left (a b : R) : -a + (a + b) = b := by
 
 -- Prove these:
 theorem add_neg_cancel_right (a b : R) : a + b + -b = a := by
-  sorry
+  rw [add_assoc a, add_neg_cancel, add_zero]
 
 theorem add_left_cancel {a b c : R} (h : a + b = a + c) : b = c := by
-  sorry
+  rw [← add_neg_cancel_right b a]
+  rw [← add_neg_cancel_right c a]
+  rw [add_comm b a, add_comm c a, h]
 
 theorem add_right_cancel {a b c : R} (h : a + b = c + b) : a = c := by
-  sorry
+  rw [← add_neg_cancel_right a b]
+  rw [← add_neg_cancel_right c b]
+  rw [h]
 
 theorem mul_zero (a : R) : a * 0 = 0 := by
   have h : a * 0 + a * 0 = a * 0 + 0 := by
@@ -67,20 +78,31 @@ theorem mul_zero (a : R) : a * 0 = 0 := by
   rw [add_left_cancel h]
 
 theorem zero_mul (a : R) : 0 * a = 0 := by
-  sorry
+  have h : 0 * a + 0 * a  = 0 + 0 * a := by
+    rw[← add_mul, zero_add, zero_add]
+  rw [add_right_cancel h]
+
+-- 感觉这个have好神奇
+-- 相当于拆分一个阶段小目标！！然后rw实现
+
 
 theorem neg_eq_of_add_eq_zero {a b : R} (h : a + b = 0) : -a = b := by
-  sorry
+  rw [← neg_add_cancel_left a b, h, add_zero]
 
 theorem eq_neg_of_add_eq_zero {a b : R} (h : a + b = 0) : a = -b := by
-  sorry
+  rw [← neg_add_cancel_left b a, add_comm b a, h, add_zero]
 
 theorem neg_zero : (-0 : R) = 0 := by
   apply neg_eq_of_add_eq_zero
   rw [add_zero]
 
 theorem neg_neg (a : R) : - -a = a := by
-  sorry
+  apply neg_eq_of_add_eq_zero
+  rw [neg_add_cancel]
+
+-- 这个apply稍微有点没懂
+-- 是不是目标符合这个定理就把目标变成了neg_eq_of_add_eq_zero的条件
+-- 然后证明条件h
 
 end MyRing
 
@@ -103,13 +125,14 @@ namespace MyRing
 variable {R : Type*} [Ring R]
 
 theorem self_sub (a : R) : a - a = 0 := by
-  sorry
+  rw [sub_eq_neg_add, neg_add_cancel]
 
 theorem one_add_one_eq_two : 1 + 1 = (2 : R) := by
   norm_num
 
 theorem two_mul (a : R) : 2 * a = a + a := by
-  sorry
+  rw [← one_add_one_eq_two, add_mul, one_mul]
+
 
 end MyRing
 
@@ -131,16 +154,29 @@ variable {G : Type*} [Group G]
 
 namespace MyGroup
 
-theorem mul_inv_cancel (a : G) : a * a⁻¹ = 1 := by
-  sorry
+-- 如果你觉得自大，试着证明以下关于群体的事实，
+-- 只使用这些公理。一路走来，你需要证明一些帮助引理。
+-- 我们在本节中进行的证明提供了一些提示。
+-- 我不自大可以放过我吗。
 
+theorem mul_inv_cancel (a : G) : a * a⁻¹ = 1 := by
+  have h : a * a⁻¹ * a = 1 * a := by
+    rw [mul_assoc a a⁻¹ a, inv_mul_cancel a, mul_one, one_mul]
+  rw [mul_right_cancel h]
+
+-- 感觉到这才搞明白一点have怎么用
 theorem mul_one (a : G) : a * 1 = a := by
-  sorry
+  have h : a * 1 * a = a * a := by
+    rw [mul_assoc, one_mul]
+  rw [mul_right_cancel h]
 
 theorem mul_inv_rev (a b : G) : (a * b)⁻¹ = b⁻¹ * a⁻¹ := by
-  sorry
+  have h : (a * b)⁻¹ * (a * b) = b⁻¹ * a⁻¹ * (a * b) := by
+    rw [inv_mul_cancel, ← mul_assoc, mul_assoc b⁻¹ a⁻¹ a, inv_mul_cancel]
+    rw [mul_assoc, one_mul, inv_mul_cancel]
+  rw [mul_right_cancel h]
 
+-- 没有看答案纯手写版，感觉应该绕了很多圈，但总算写出来了
 end MyGroup
 
 end
-
