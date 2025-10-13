@@ -36,22 +36,79 @@ variable (x y z : α)
 #check (sup_le : x ≤ z → y ≤ z → x ⊔ y ≤ z)
 
 example : x ⊓ y = y ⊓ x := by
-  sorry
+  apply le_antisymm
+  repeat
+    apply le_inf
+    apply inf_le_right
+    apply inf_le_left
 
 example : x ⊓ y ⊓ z = x ⊓ (y ⊓ z) := by
-  sorry
+  apply le_antisymm
+  apply le_inf
+  trans x⊓y
+  -- 看懂trans了！trans是制造一个中间项表示传递关系
+  repeat
+    apply inf_le_left
+  apply le_inf
+  trans x⊓y
+  apply inf_le_left
+  apply inf_le_right
+  apply inf_le_right
+  repeat
+    apply le_inf
+  apply inf_le_left
+  trans y⊓z
+  apply inf_le_right
+  apply inf_le_left
+  trans y⊓z
+  apply inf_le_right
+  apply inf_le_right
 
 example : x ⊔ y = y ⊔ x := by
-  sorry
+  apply le_antisymm
+  repeat
+    apply sup_le
+    apply le_sup_right
+    apply le_sup_left
 
 example : x ⊔ y ⊔ z = x ⊔ (y ⊔ z) := by
-  sorry
+  apply le_antisymm
+  repeat
+    apply sup_le
+  apply le_sup_left
+  trans y⊔z
+  apply le_sup_left
+  apply le_sup_right
+  trans y⊔z
+  repeat
+    apply le_sup_right
+  apply sup_le
+  trans x⊔y
+  repeat
+    apply le_sup_left
+  apply sup_le
+  trans x⊔y
+  apply le_sup_right
+  apply le_sup_left
+  apply le_sup_right
+
+-- 这两坨可读性极差，因为发现不写· 也很方便
+-- 只要按顺序解决目标
 
 theorem absorb1 : x ⊓ (x ⊔ y) = x := by
-  sorry
+  apply le_antisymm
+  apply inf_le_left
+  apply le_inf
+  apply le_refl
+  apply le_sup_left
+
 
 theorem absorb2 : x ⊔ x ⊓ y = x := by
-  sorry
+  apply le_antisymm
+  apply sup_le
+  apply le_refl
+  apply inf_le_left
+  apply le_sup_left
 
 end
 
@@ -70,10 +127,13 @@ variable {α : Type*} [Lattice α]
 variable (a b c : α)
 
 example (h : ∀ x y z : α, x ⊓ (y ⊔ z) = x ⊓ y ⊔ x ⊓ z) : a ⊔ b ⊓ c = (a ⊔ b) ⊓ (a ⊔ c) := by
-  sorry
+  rw[h, inf_comm (a⊔b), absorb1, inf_comm (a⊔b), h, ← sup_assoc, inf_comm c b, inf_comm c a, absorb2 ]
 
 example (h : ∀ x y z : α, x ⊔ y ⊓ z = (x ⊔ y) ⊓ (x ⊔ z)) : a ⊓ (b ⊔ c) = a ⊓ b ⊔ a ⊓ c := by
-  sorry
+  rw[h, sup_comm (a⊓b) a, absorb2, sup_comm (a⊓b) c, h, ← inf_assoc, sup_comm c a, absorb1, sup_comm c b]
+
+-- 完全想不到下一步要干什么……尝试定理中……
+-- 最后发现换来换去就是为了凑出absorb的两个定理，只有它们可以减少字母
 
 end
 
@@ -86,14 +146,30 @@ variable (a b c : R)
 
 #check (mul_nonneg : 0 ≤ a → 0 ≤ b → 0 ≤ a * b)
 
-example (h : a ≤ b) : 0 ≤ b - a := by
-  sorry
+example (h : a ≤ b) : 0 ≤ b - a :=
+  have h1: 0+a≤ b-a+a := by
+    rw[zero_add, sub_add_cancel b]
+    exact h
+  le_of_add_le_add_right h1
+
+-- le_of_add_le_add_right h1这行不用加apply？
 
 example (h: 0 ≤ b - a) : a ≤ b := by
-  sorry
+  rw[← zero_add a, ← sub_add_cancel b a]
+  apply add_le_add_right h
 
 example (h : a ≤ b) (h' : 0 ≤ c) : a * c ≤ b * c := by
-  sorry
+  have h1:0≤(b-a)*c := by
+    apply mul_nonneg
+    rw [← sub_nonneg] at h
+    exact h
+    exact h'
+  rw[sub_mul] at h1
+  rw [← add_zero (a*c)]
+  rw[← sub_add_cancel (b*c) (a*c)]
+  rw[add_comm (b*c-a*c) (a*c)]
+  apply add_le_add_left
+  exact h1
 
 end
 
@@ -106,7 +182,11 @@ variable (x y z : X)
 #check (dist_triangle x y z : dist x z ≤ dist x y + dist y z)
 
 example (x y : X) : 0 ≤ dist x y := by
-  sorry
+  have h: dist x x≤ dist x y+dist y x:=by
+    apply dist_triangle x y x
+  rw[dist_self x, dist_comm y x] at h
+  linarith
+
+-- 有时想不到定理的时候直接试试linarith
 
 end
-
