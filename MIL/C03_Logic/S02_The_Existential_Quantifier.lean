@@ -148,7 +148,13 @@ example (divab : a ∣ b) (divbc : b ∣ c) : a ∣ c := by
   use d * e; ring
 
 example (divab : a ∣ b) (divac : a ∣ c) : a ∣ b + c := by
-  sorry
+  rcases divab with ⟨d, beq⟩
+  rcases divac with ⟨e, ceq⟩
+  use d+e
+  rw[beq, ceq]
+  ring
+
+-- 参考example (divab : a ∣ b) (divbc : b ∣ c) : a ∣ c := by
 
 end
 
@@ -162,10 +168,20 @@ example {c : ℝ} : Surjective fun x ↦ x + c := by
   dsimp; ring
 
 example {c : ℝ} (h : c ≠ 0) : Surjective fun x ↦ c * x := by
-  sorry
+  intro x
+  dsimp
+  use x/c
+--  ring_nf
+--  rw[mul_comm c x, mul_assoc x]
+--  rw[mul_inv_cancel h, mul_one]
+-- 为什么这个报错？mul_inv_cancel h
+  rw[mul_div_cancel₀]
+  apply h
+
 
 example (x y : ℝ) (h : x - y ≠ 0) : (x ^ 2 - y ^ 2) / (x - y) = x + y := by
   field_simp [h]
+-- 清除分母！
   ring
 
 example {f : ℝ → ℝ} (h : Surjective f) : ∃ x, f x ^ 2 = 4 := by
@@ -182,6 +198,18 @@ variable {α : Type*} {β : Type*} {γ : Type*}
 variable {g : β → γ} {f : α → β}
 
 example (surjg : Surjective g) (surjf : Surjective f) : Surjective fun x ↦ g (f x) := by
-  sorry
+  intro x
+  rcases surjg x with ⟨y, rfl⟩
+  rcases surjf y with ⟨x, rfl⟩
+  use x
 
+-- intro x: ∃ a, g (f a) = x
+-- rcases surjg x with ⟨y, rfl⟩: ∃ y, g y = x
+-- rfl: g y = x
+
+-- rcases surjf y with ⟨x, rfl⟩: ∃ x, f x = y
+-- rfl: f x = y
+
+-- use x: g (f x) = x
+-- 这个rcases with 和 use这块还是稍微不太懂
 end
