@@ -41,6 +41,7 @@ theorem fnUb_add {f g : ℝ → ℝ} {a b : ℝ} (hfa : FnUb f a) (hgb : FnUb g 
     FnUb (fun x ↦ f x + g x) (a + b) :=
   fun x ↦ add_le_add (hfa x) (hgb x)
 
+
 section
 
 variable {f g : ℝ → ℝ}
@@ -52,10 +53,28 @@ example (ubf : FnHasUb f) (ubg : FnHasUb g) : FnHasUb fun x ↦ f x + g x := by
   apply fnUb_add ubfa ubgb
 
 example (lbf : FnHasLb f) (lbg : FnHasLb g) : FnHasLb fun x ↦ f x + g x := by
-  sorry
+  rcases lbf with ⟨a, lbfa⟩
+  rcases lbg with ⟨b, lbgb⟩
+  use a+b
+  intro x
+  apply add_le_add (lbfa x) (lbgb x)
+
+--use a+b声明a+b是新函数fun x ↦ f x + g x 的下界
+
+-- lbfa x 给出 a ≤ f x
+-- lbgb x 给出 b ≤ g x
+-- add_le_add：a ≤ b → c ≤ d → a + c ≤ b + d
+-- 所以得到 a + b ≤ f x + g x
+
+
 
 example {c : ℝ} (ubf : FnHasUb f) (h : c ≥ 0) : FnHasUb fun x ↦ c * f x := by
-  sorry
+  rcases ubf with ⟨b, ubfb⟩
+  use c*b
+  intro x
+  apply mul_le_mul_of_nonneg_left (ubfb x) h
+
+-- 类似但又有点不一样的 使用c*b
 
 example : FnHasUb f → FnHasUb g → FnHasUb fun x ↦ f x + g x := by
   rintro ⟨a, ubfa⟩ ⟨b, ubgb⟩
