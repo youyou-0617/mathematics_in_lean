@@ -108,4 +108,3 @@ example (h : ¬Monotone f) : ∃ x y, x ≤ y ∧ f y < f x := by
   exact h
 
 end
-
